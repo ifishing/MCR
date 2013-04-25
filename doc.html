@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>MCR文档</title>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <script type="text/javascript" src="./syntaxhighlighter/shCore.js"></script>
+	<script type="text/javascript" src="./syntaxhighlighter/shBrushJScript.js"></script>
+        <link type="text/css" rel="stylesheet" href="syntaxhighlighter/shCoreDefault.css"/>
+        <style type="text/css">
+            html ,body{padding: 0;margin:0;font-size:13px;line-height: 2em;}
+            .banner {background-color:#DCDBD9;color:navy;
+                    height:50px; line-height: 50px;
+                    text-align: center;font-weight: 900;font-size:14pt;
+                    background: -moz-linear-gradient(top,#DCDBD9 0,#F6F5F3 100%);
+                    background: -webkit-gradient(linear,left top,left bottom,color-stop(0%,#DCDBD9),color-stop(100%,#F6F5F3));
+                    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#dcdbd9',endColorstr='#F6F5F3',GradientType=0);
+                    border-bottom: 1px solid #DFDFDF;
+            }
+            .content{width:960px;margin:0 auto;}
+            .container{margin:20px auto;}
+            .container  .title1{border:0px;border-bottom:1px dotted #555555;font-size:12pt;font-weight:bolder ;margin: 0;padding-left:20px;color:#EB8C28;}
+            .container  .title2{border:0px;font-size:11pt;font-weight:bold ;margin: 10px 0;padding-left:25px;color:#6396D8;}
+            .container  .block{padding:0;}
+            a{color:#356DE4;}
+            a:visited{color:#356DE4}
+            ul.subcategory{margin-left:0px; ;}
+            p{ text-indent:20px}
+            .emphasisBlock{background-color:#E6EDF8/*#D6EFFF*/;margin:10px auto;padding:10px 16px;}
+            .pictureWrapper{text-align:center;margin:16px auto;}
+            table.memberlist{border-collapse: collapse;width:90%;margin:6px auto;}
+            table.memberlist td{padding:2px;}
+            table.memberlist>thead{background-color: #E6EDF8;}
+            table.memberlist>thead td{border:1px solid gray;text-align: center;word-wrap:normal;word-break:keep-all;min-width: 50px;}
+            table.memberlist>tbody td{border:1px solid gray;word-wrap:break-word;}
+            table.memberlist>tbody td:first-child  ,table.memberlist>tbody td:nth-child(2) {text-align: center;}
+            .memberlistTitle{margin:10px 0 10px 30px;color: #6396D8;}
+
+        </style>
+    </head>
+    <body>
+        <div class="banner">基于MCRV开发模式的js框架</div>
+        <div class="content">
+          <div class="container">
+            <h2 class="title1">目录<a name="catalog"></a></h2>
+            <div class="block">
+                <ul>
+                    <li><a href="#overview">概述<a href="#overview"></a></li>
+                    <li> <a href="#coreApi">MCR框架核心API</a>
+                        <ul class="subcategory">
+                            <li><a href="#model">Model对象的接口</a></li>
+                            <li><a href="#controller">Controller对象的接口</a></li>
+                            <li><a href="#renderer">Renderer对象的接口</a></li>
+                            <li><a href="#mcr">MCR对象的接口</a></li>
+                            <li><a href="#mcrOtherInterface">MCR命名空间的其他例子</a></li>
+                            <li> <a href="#coreApiDemo"> 例子</a></li>
+                        </ul>
+                    </li>
+                    <li><a href="#debug">方法参数调试与ajax数据调试</a>
+                        <ul class="subcategory">
+                            <li><a href="#debugOverview">概述</a></li>
+                            <li><a href="#debugOption">调试配置</a></li>
+                            <li><a href="#debugOptionByURL">用URL参数配置调试</a></li>
+                            <li><a href="#debugWindow">调试窗口的使用</a></li>
+                            <li><a href="#debugDemo">例子</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="container">
+            <h2 class="title1">概述<a name="overview"></a></h2>
+            <div class="block">
+                <p>MCR是一个遵循MCRV设计模式的js框架。MCR框架提供了遵循MCR开发模式的上下文环境。
+                    <br/>MCRV将一个Web页应用的代码按逻辑功能划分为如下几个部分:
+                    <div class="emphasisBlock">
+                        <b>M(Model)</b>：模型。完成数据验证、数据处理，执行客户端业务逻辑计算
+                          ，或向服务器发起ajax请求调用服务端逻辑、接受返回的数据，将处理后的数据返回控制器。
+                         <br/><b>C(Controller)</b>：控制器。控制器响应View上的事件，根据事件调度执行模型的业务逻辑
+                         ，从业务逻辑获取返回数据，调度相应的渲染器(Render)来完成界面展现。
+                         在这个过程中控制器会有数据的传递：控制器调用模型中的逻辑时会传送Renderer搜集的数据(form表单各域的name/value、其他控制参数)
+                         ，模型执行逻辑后返回作为执行结果的数据给控制器，控制器根据数据来调用渲染器(renderer)来完成界面呈现(rendering)
+                         ，呈现(rendering)就是修改页面结构、内容和样式的过程。数据传递过程可以用图4表示。
+                         <br/><b>R(Renderer)</b>：渲染器(呈现器)。渲染器被控制器调用，接受从控制器传递的数据，完成对界面的具体渲染。
+                         渲染器也负责控件(widget)的初始化，及建立Controller与具体事件的对应关系，事件发生时负责搜集View上的数据传送到Controller。
+                         <br/><b>V(View)</b>：视图。视图是用户最终看到的整个Web界面，由结构、内容、样式（表现）等静态内容共同构成。View由Renderer进行初始化渲染和修改。
+                    </div>
+                </p>
+                <p>
+                    模型、视图、控制器、渲染器之间的交互关系如图1所示：
+                    <div class="pictureWrapper">
+                        <img src="./images/MCRV.jpg" width="500" alt="MCRV各组件间的关系"/>
+                        <br/>图1:MCR框架主要对象
+                    </div>
+                关于MCRV设计模式的详细介绍，请参见：<a href="http://www.baiduux.com/blog/2011/07/08/frontend-mcrv-design-pattern/" target="_blank">前端开发中的MCRV模式</a>
+                </p>
+                <p>
+                    MCR框架包含如下几个主要对象，如图2所示。除基本的M、C、R对象之外，还有MCR对象、Cache对象。
+                    Model、Controller、View对象分别对应MCRV中的M（模型）、C（控制器）、R（渲染器）。
+                    MCR对象是M、C、R的复合，用于对M、C、R进行集中控制。一个MCR中分别含有一个M、C、R，M/C/R 一一对应，M/C/R组成一个MCR三元组。
+                    Cache是用于对Model中数据的本地缓存对象。
+                    <div class="pictureWrapper">
+                        <img src="./images/MCRV-UML.jpg" width="500" alt="MCR主要对象"/>
+                        <br/>图2:MCR框架主要对象
+                    </div>
+                </p>
+                <p>
+                    MCR框架的基本设计考虑：
+                    <div class="emphasisBlock">
+                        <ul style="list-style-type:square;">
+                            <li> Model、Controller、Renderer组成一个三元组MCR，一个MCR三元组中Controller对象、Model对象和Renderer对象是唯一的。</li>
+                            <li> Model、Controller、Renderer可以初始化和销毁</li>
+                            <li> Controller、Model、View在需要时可以透明地引用其他对象</li>
+                            <li> 数据与逻辑分离，支持数据本地缓存</li>
+                            <li> 一个Web页面可以有多个MCR组，即可以有多个Controller、Model、Renderer三元组分别完成不同的控制、逻辑、展现。
+                                一个页面逻辑和交互非常复杂时，拆分为多个模块(MCR)，由多人开发。</li>
+                            <li>支持本地数据构造，方便调试</li>
+                        </ul>
+                    </div>
+                </p>
+                <p>
+                    M与C、C与R之间通过方法进行交互。M、C、R对象提供对外调用的方法(接口)接受的参数规范为一个对象，这样可以使当方法实现因为需求变化改变时，方法调用不变，从而保持接口调用的稳定性。同时，方法参数为一个参数也是方法可被MCR进行数据调试的规范。各对象之间的数据流向如图3所示。
+                    <div class="pictureWrapper">
+                        <img src="./images/MCRVDataFlow.jpg" width="500" alt="数据流向"/>
+                        <br/>图3:数据流
+                    </div>
+                </p> 
+            </div>
+        </div>
+        
+        <div class="container">
+            <h2 class="title1">MCR框架核心API<a name="coreApi"></a></h2>
+            <p>框架核心API实现了MCR框架的核心部分。使用时请引入MCR-Core.js。</p>
+            <!-- Model对象  -->
+            <div>
+                 <h3 class="title2">1.Model对象<a name="model"></a></h3>
+                 <div class="block">
+                     <p>
+                         Model对象是对业务逻辑与用户数据的封装，一般被Controller对象调用。
+                         实现Model逻辑的可以是一个function(类)或者对象实例。
+                         通过调用MCR.Model()方法可以给实现model逻辑的function(类)或者对象实例扩展Model接口，生成一个Model实例。
+                     </p>
+                    <h4 class="memberlistTitle">接口成员列表</h4>
+                    <table class="memberlist">
+                        <thead>
+                            <tr><td>名称</td><td>类型</td><td>作用</td></tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>model</td>
+                                <td>属性</td>
+                                 <td>对相关的Model对象的引用</td>
+                            </tr>
+                            <tr>
+                                <td>cache</td>
+                                <td>属性</td>
+                                 <td></td>
+                            </tr>
+                            <tr>
+                                <td>init</td>
+                                <td>方法</td>
+                                <td>用户在此方法中自定义Model的初始化功能。此方法被MCR对象自动调用。</td>
+                            </tr>
+                            <tr>
+                                <td>dispose</td>
+                                <td>方法</td>
+                                <td>
+                                    用户在此方法中自定义Model的销毁处理功能。在MCR对象销毁时会被自动调用。
+                                    如果需要处理内存泄露相关问题（如model与DOM元素等非javascript对象构成循环引用），请实现此方法。
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    
+                 </div>
+            </div>
+           
+            <!-- Controller对象-->
+            <div>
+                <h3 class="title2">2.Controller对象的接口<a name="controller"></a></h3>
+                <div class="block">
+                    <p>Controller即控制器，实现对Model和Renderer的调度。</p>
+                    <h4  class="memberlistTitle">接口成员列表</h4>
+                    <table class="memberlist">
+                        <thead>
+                            <tr><td>名称</td><td>类型</td><td>作用</td></tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>model</td>
+                                <td>属性</td>
+                                 <td>对相关的Model对象的引用</td>
+                            </tr>
+                            <tr>
+                                <td>renderer</td>
+                                <td>属性</td>
+                                <td>对相关的Renderer对象的引用</td>
+                            </tr>
+                            <tr>
+                                <td>init</td>
+                                <td>方法</td>
+                                <td>用户在此方法中自定义Model的初始化功能。会被MCR对象自动调用。</td>
+                            </tr>
+                            <tr>
+                                <td>dispose</td>
+                                <td>方法</td>
+                                <td>
+                                    用户在此方法中自定义Controller的销毁处理功能。在MCR对象销毁时会被自动调用。
+                                    如果需要处理内存泄露相关问题（如controller与DOM元素等非javascript对象构成循环引用），请实现此方法。
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                       
+                </div>
+            </div>
+            
+            <!-- Renderer对象  -->
+            <div>
+                <h3 class="title2">3.Renderer对象<a name="renderer"></a></h3>
+                <div class="block">
+                    <p>渲染器对象，实现UI渲染，控件(widget)的初始化，及建立Controller与具体事件的对应关系，事件发生时负责搜集View上的数据传送到Controller。</p> 
+                    <h4  class="memberlistTitle">接口成员列表</h4>
+                    <table class="memberlist">
+                        <thead>
+                            <tr><td>名称</td><td>类型</td><td>作用</td></tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>renderer</td>
+                                <td>属性</td>
+                                <td>对相关的Renderer对象的引用</td>
+                            </tr>
+                            <tr>
+                                <td>init</td>
+                                <td>方法</td>
+                                <td>用户在此方法中自定义Model的初始化功能。会被MCR对象自动调用。</td>
+                            </tr>
+                            <tr>
+                                <td>dispose</td>
+                                <td>方法</td>
+                                <td>
+                                    用户在此方法中自定义Controller的销毁处理功能。在MCR对象销毁时会被自动调用。
+                                    如果需要处理内存泄露相关问题（如controller与DOM元素等非javascript对象构成循环引用），请实现此方法。
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+             
+            <!-- MCR对象  -->
+            <div>
+                <h3 class="title2">3.MCR对象<a name="mcr"></a></h3>
+                <div class="block">
+                    <p>
+                        MCR对象是控制器(Controller)对象、模型对象(Model)和渲染器对象(Renderer)的复合对象，代表一个M-C-R三元组，实现一个特定的页面交互、渲染、计算逻辑。
+                        MCR对象在构造时须传入M、C、R等构造参数，检查传入的M、C、R是否实现了相应的接口，如果没有实现则会自动调用相应的接口扩展方法。
+                        MCR对象会自动调用M、C、R的init方法，完成M、C、R对象的初始化。在页面unload时，MCR对象的dispose方法会被自动调用，该方法会自动调用M、C、R的dispose方法完成清理。
+                    </p> 
+                    <h4  class="memberlistTitle">接口成员列表</h4>
+                    <table class="memberlist">
+                        <thead>
+                            <tr><td>名称</td><td>类型</td><td>作用</td></tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>model</td>
+                                <td>属性</td>
+                                <td>对相关的model对象的引用</td>
+                            </tr>
+                            <tr>
+                                <td>controller</td>
+                                <td>属性</td>
+                                <td>对相关的controller对象的引用</td>
+                            </tr>
+                            <tr>
+                                <td>renderer</td>
+                                <td>属性</td>
+                                <td>对相关的Renderer对象的引用</td>
+                            </tr>
+                            <tr>
+                                <td>dispose</td>
+                                <td>方法</td>
+                                <td>
+                                    用户自定义特定销毁逻辑。
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!--MCR命名空间其他接口 -->
+            <div>
+                <h3 class="title2">4.MCR命名空间其他接口<a name="mcrOtherInterface"></a></h3>
+                <div class="block">
+                    <table class="memberlist">
+                        <thead>
+                            <tr><td>名称</td><td>类型</td><td>描述</td></tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>makeNameplace</td>
+                                <td>方法</td>
+                                <td>根据参数构造命名空间。如MCR.makeNameplace("baidu.noah.common")将构造一个"baidu.noah.common"命名空间。</td>
+                            </tr>
+                            <tr>
+                                <td>debug</td>
+                                <td>待扩展方法</td>
+                                <td>
+                                    MCR预留的调试接口，默认没有实现。用户可以扩展此方法，对M、C、R的方法和Ajax请求进行调试。
+                                    <br/>接受的参数(data,context,func,funcname,type)
+                                    <br/>&nbsp;&nbsp;@data:方法的第一个参数
+                                    <br/>&nbsp;&nbsp;@context:方法所述对象
+                                    <br/>&nbsp;&nbsp;@func:要调试的方法
+                                    <br/>&nbsp;&nbsp;@funcname:要调试的方法的名字
+                                     <br/>&nbsp;&nbsp;@type:调试的类型
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>isString</td>
+                                <td>方法</td>
+                                <td>判断是否是字符串</td>
+                            </tr>
+                            <tr>
+                                <td>isFunction</td>
+                                <td>方法</td>
+                                <td>判断是否是function</td>
+                            </tr>
+                            <tr>
+                                <td>isArray</td>
+                                <td>方法</td>
+                                <td>判断是否是数组</td>
+                            </tr>
+                            <tr>
+                                <td>isWindow</td>
+                                <td>方法</td>
+                                <td>判断是否是window对象</td>
+                            </tr>
+                            <tr>
+                                <td>isHtmlElement</td>
+                                <td>方法</td>
+                                <td>判断是否是html元素</td>
+                            </tr>
+                            <tr>
+                                <td>bind</td>
+                                <td>方法</td>
+                                <td>事件绑定</td>
+                            </tr>
+                            <tr>
+                                <td>unbind</td>
+                                <td>方法</td>
+                                <td>事件解绑定</td>
+                            </tr>
+                             <tr>
+                                <td>getFuncName</td>
+                                <td>方法</td>
+                                <td>传入函数，获取函数名称</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            
+            <!--MCR命名空间其他接口 -->
+            <div>
+                <h3 class="title2">4.MCR命名空间其他接口<a name="mcrOtherInterface"></a></h3>
+                <div class="block">
+                    <p> 例子请 <a href="./MCRFrameworkExample.html" target="_blank">点击</a></p>
+                </div>
+            </div>
+            
+        </div>
+        
+        <!--第二部分：调试  -->
+        <div class="container">
+            <h2 class="title1">方法参数调试与ajax数据调试<a name="debug"></a></h2>
+            <h3 class="title2">1.概述<a name="debugOverview"></a></h3>
+            <div class="block">
+                <p>
+                    调试部分实现了对于Model、Controller、View中特定方法的调试及Ajax调试（目前只支持jQuery和json格式的数据调试）。
+                    使用调试功能时请引入MCR-Debug.js。启动调试的方法是通过在js代码中配置MCR.debugOption对象，
+                    或者在页面的URL中加上debug参数(调试特定方法)或者debugAjax参数(调试ajax)，详见<a href="#debugOption">调试参数配置</a>。
+                </p>
+            </div>
+            
+             <!--调试参数配置 -->
+            <div>
+                <h3 class="title2">2.调试参数配置<a name="debugOption"></a></h3>
+                <div class="block">
+                    <p> 
+                        调试参数存储在MCR.debugOption对象内。
+                        <br/>
+                    <pre class="brush:js">
+                        MCR.debugOption={
+                         debug:{} //对象字段的值是要调试的方法名称，
+                         debugAjax:"" //before||success。
+                        }
+                    </pre>
+                    </p>
+                    <p>
+                        <b>方法调试：</b><br/> 
+                        通过配置MCR.debugOption.debug对象启动方法调试，该对象是一个过滤器，其各字段的值就是要调试的方法名称
+                        ，如:
+                         <pre class="brush:js">MCR.debugOption.debug={"beginModify":"beginModify","renderUsers":"renderUsers"}//调试beginModify和renderUsers这两个方法</pre>
+                         MCR.debugOption.debug也可以是一个数组，如上述配置可以写作：
+                         <pre class="brush:js">MCR.debugOption.debug=["beginModify","renderUsers"] //效果同上</pre>
+                         Model、Controller、Renderer的方法都可以被调试，被调试的方法至少有一个参数，且只调试第一个参数，且第一个参数值不能为undefined。
+                         只根据方法名称来决定调试那个方法，不区分属于哪一个对象。
+                    </p>
+                    <p>
+                        <b>ajax调试：</b><br/> 
+                        通过设置MCR.debugOption.debugAjax的值启动ajax调试，有两个可选值：
+                        <br/>before：在ajax发送到服务器之前截获ajax请求，弹出调试窗口由用户构造要返回的json数据，用户点击确定后MCR框架调用原ajax请求的success方法；
+                        <br/>success:ajax请求成功后调试返回数据。
+                    </p> 
+                </div>
+            </div>
+             
+            <!--用URL参数配置调试 -->
+            <div>
+                <h3 class="title2">3.用URL参数配置调试<a name="debugOptionByURL"></a></h3>
+                <div class="block">
+                    <p>
+                        可以通过在URL中加入debug和debugAjax参数来配置调试。
+                        <br/>例如: 网址http://localhost/MCRV/MCR/MCRFrameworkExample.html?debug=["beginModify","getUserByID"]&debugAjax=success 
+                        ，表示要调试方法beginModify和getUserByID，并且要在ajax请求成功后调试返回数据。
+                    </p>
+                </div>
+            </div>
+            
+            <!--调试窗口的使用-->
+            <div>
+                <h3 class="title2">4.数据调试窗口的使用<a name="debugWindow"></a></h3>
+                <div class="block">
+                    <p>
+                       启动调试后，弹出的数据调试窗口如图所示:     
+                       <div class="pictureWrapper">
+                            <img src="./images/debugWindow.jpg" width="350" alt="数据调试窗口"/>
+                            <br/>图4:数据调试窗口
+                       </div>
+                       窗口内文本框的字符串是要调试的数据的json字符串，编辑时也必须使其满足json格式。
+                       <br/>三个按钮的作用：
+                       <div class="emphasisBlock">
+                       <b>确定按钮</b>：将文本框内的json字符串解析为json对象后作为第一个参数传执行正在被调试的方法（方法调试的被调试方法，或者ajax调试时请求成功要执行的success方法）。
+                       <br/><b>取消按钮及关闭按钮</b>：放弃正在编辑的数据，以启动调试窗口时传递的值为第一个参数执行被调试的方法。
+                       <br/><b>重置按钮</b>：将编辑框内的数据置为启动调试窗口时传递的值。</div>
+                    </p>
+                </div>
+            </div>
+            
+             <!--例子 -->
+            <div>
+                <h3 class="title2">5.例子<a name="debugDemo"></a></h3>
+                <div class="block">
+                    <p>
+                         请点击后面的链接启动调试：<a target="_blank" href='./MCRFrameworkExample.html?debug=["beginModify"]&debugAjax=success'>启动调试</a>
+                    </p>
+                    <p><b>注意：</b>如果您在通过本地文件系统启动这个调试，由于Chrome不支持请求本地ajax，所以请使用Firefox、IE浏览器。</p>
+                </div>
+            </div>
+             
+             
+             
+        </div>
+            
+            
+        <div style="padding:10px;border:2px solid #6396D8;position: fixed;bottom:20px;right: 20px;"><a href="#catalog">转到目录</a></div>  
+       </div>
+        <script type="text/javascript">
+            SyntaxHighlighter.defaults['smart-tabs'] = true;
+            SyntaxHighlighter.defaults['toolbar'] = false;
+            SyntaxHighlighter.all();
+        </script>
+    </body>
+</html>
